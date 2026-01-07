@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-slate-900 flex">
-    <aside class="w-72 bg-slate-800 dark:bg-slate-950 text-white flex flex-col">
-      <div class="px-6 py-6 border-b border-slate-700 dark:border-slate-600">
+    <aside class="w-72 bg-slate-800 dark:bg-slate-950 text-white flex flex-col sticky top-0 h-screen">
+      <div class="px-6 py-5 border-b border-slate-700 dark:border-slate-600">
         <h1 class="text-2xl font-bold">
           Tours & Travel
           <span class="block text-xl font-normal text-slate-300">
@@ -11,7 +11,7 @@
       </div>
 
       <nav class="px-4 py-6 space-y-2 text-md">
-        <NuxtLink to="/" class="block px-3 py-2 rounded-lg hover:bg-slate-700 dark:hover:bg-slate-600 font-medium">
+        <NuxtLink to="/dashboard" class="block px-3 py-2 rounded-lg hover:bg-slate-700 dark:hover:bg-slate-600 font-medium">
           Dashboard
         </NuxtLink>
         <NuxtLink to="/users" class="block px-3 py-2 rounded-lg hover:bg-slate-700 dark:hover:bg-slate-600">
@@ -36,8 +36,8 @@
     </aside>
 
     <div class="flex-1 flex flex-col">
-      <header class="h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between px-8">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-slate-100">Tours & Travel Admin Panel</h2>
+      <header class="h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-slate-100">Infinite Horizons Travel Studio</h2>
 
         <button
           class="px-3 py-1 rounded-full text-sm border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-100 bg-gray-100 dark:bg-slate-800" @click="toggleTheme">
