@@ -1,108 +1,153 @@
 <template>
-  <div>
-    <div class="mb-12">
-      <h1 class="text-4xl font-bold text-gray-900 dark:text-slate-100 mb-4">Dashboard</h1>
-      <p class="text-xl text-gray-600 dark:text-slate-300">Overview of all operations and key metrics</p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-      <div class="p-8 border rounded-xl shadow-sm bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 hover:shadow-lg">
-        <div class="text-sm font-medium text-gray-500 dark:text-slate-300 uppercase tracking-wide">Total Users</div>
-        <div class="text-4xl font-bold text-blue-600 mt-2">{{ stats.users }}</div>
-      </div>
-
-      <div class="p-8 border rounded-xl shadow-sm bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 hover:shadow-lg">
-        <div class="text-sm font-medium text-gray-500 dark:text-slate-300 uppercase tracking-wide">Active Tours</div>
-        <div class="text-4xl font-bold text-green-600 mt-2">{{ stats.tours }}</div>
-      </div>
-
-      <div class="p-8 border rounded-xl shadow-sm bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 hover:shadow-lg">
-        <div class="text-sm font-medium text-gray-500 dark:text-slate-300 uppercase tracking-wide">Total Bookings</div>
-        <div class="text-4xl font-bold text-purple-600 mt-2">{{ stats.bookings }}</div>
-      </div>
-
-      <div class="p-8 border rounded-xl shadow-sm bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 hover:shadow-lg">
-        <div class="text-sm font-medium text-gray-500 dark:text-slate-300 uppercase tracking-wide">Total Revenue</div>
-        <div class="text-4xl font-bold text-orange-600 mt-2">${{ stats.revenue.toLocaleString() }}</div>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-8 border border-gray-200 dark:border-slate-700">
-        <h2 class="text-2xl font-semibold mb-6 text-gray-900 dark:text-slate-100">Recent Bookings</h2>
-        <div class="overflow-x-auto">
-          <table id="recent-bookings-table" class="display min-w-full border-collapse text-gray-900 dark:text-slate-100">
-            <thead>
-              <tr class="bg-gray-50 dark:bg-slate-800">
-                <th class="border-b border-gray-200 dark:border-slate-700">ID</th>
-                <th class="border-b border-gray-200 dark:border-slate-700">Customer</th>
-                <th class="border-b border-gray-200 dark:border-slate-700">Tour</th>
-                <th class="border-b border-gray-200 dark:border-slate-700">Price</th>
-                <th class="border-b border-gray-200 dark:border-slate-700">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="b in recentBookings" :key="b.id" class="hover:bg-gray-50 dark:hover:bg-slate-800">
-                <td class="border-b border-gray-200 dark:border-slate-700">{{ b.id }}</td>
-                <td class="border-b border-gray-200 dark:border-slate-700 font-medium">{{ b.user }}</td>
-                <td class="border-b border-gray-200 dark:border-slate-700">{{ b.tour }}</td>
-                <td class="border-b border-gray-200 dark:border-slate-700 font-semibold text-green-500">${{ b.price }}</td>
-                <td class="border-b border-gray-200 dark:border-slate-700">
-                  <span :class="b.status === 'confirmed' ? 'text-green-500' : b.status === 'completed' ? 'text-blue-500' : 'text-orange-400'">
-                    {{ b.status }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+  <div class="min-h-screen bg-slate-950 flex items-center justify-center text-slate-100">
+    <div class="w-full max-w-md px-6">
+      <div class="bg-slate-900/70 backdrop-blur-xl border border-slate-700/60 rounded-2xl shadow-2xl shadow-slate-900/70 p-8">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <p class="text-xs tracking-[0.25em] uppercase text-sky-400/70">Infinite Horizons Travel Studio</p>
+            <h1 class="mt-1 text-2xl font-semibold tracking-tight">Admin Console</h1>
+          </div>
         </div>
+
+        <div v-if="status.message" :class="statusClasses" class="mb-4 text-xs rounded-lg px-3 py-2">{{ status.message }}</div>
+
+        <form class="space-y-4" @submit.prevent="handleLogin">
+          <div>
+            <label class="block text-sm mb-1" for="email">Email</label>
+            <input
+              id="email"
+              v-model="email"
+              type="email"
+              required
+              class="w-full rounded-xl bg-slate-900/60 border border-slate-700/80 px-3 py-2 text-sm
+                     focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500
+                     placeholder:text-slate-500"
+              placeholder="admin@example.com"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm mb-1" for="password">Password</label>
+            <input
+              id="password"
+              v-model="password"
+              type="password"
+              required
+              class="w-full rounded-xl bg-slate-900/60 border border-slate-700/80 px-3 py-2 text-sm
+                     focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500
+                     placeholder:text-slate-500"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="w-full mt-2 inline-flex items-center justify-center gap-2 rounded-xl
+                   bg-gradient-to-r from-sky-500 to-emerald-400 px-4 py-2.5 text-sm font-semibold
+                   text-slate-950 shadow-lg shadow-sky-500/30 hover:shadow-emerald-400/30
+                   hover:from-sky-400 hover:to-emerald-300 transition"
+          >
+            <span>Login as Admin</span>
+            <span class="text-xs uppercase tracking-widest">Secure</span>
+          </button>
+        </form>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-8 border border-gray-200 dark:border-slate-700">
-        <h2 class="text-2xl font-semibold mb-6 text-gray-900 dark:text-slate-100">Top Tours</h2>
-        <div class="overflow-x-auto">
-          <table id="top-tours-table" class="display min-w-full border-collapse text-gray-900 dark:text-slate-100">
-            <thead>
-              <tr class="bg-gray-50 dark:bg-slate-800">
-                <th class="border-b border-gray-200 dark:border-slate-700">Tour</th>
-                <th class="border-b border-gray-200 dark:border-slate-700">Bookings</th>
-                <th class="border-b border-gray-200 dark:border-slate-700">Revenue</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="t in topTours" :key="t.title" class="hover:bg-gray-50 dark:hover:bg-slate-800">
-                <td class="border-b border-gray-200 dark:border-slate-700 font-medium">{{ t.title }}</td>
-                <td class="border-b border-gray-200 dark:border-slate-700">{{ t.bookings }}</td>
-                <td class="border-b border-gray-200 dark:border-slate-700 font-semibold text-green-500">{{ t.revenue }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <p class="mt-4 text-center text-[11px] text-slate-500">Only authorized administrators may access this panel. All access is monitored.</p>
     </div>
   </div>
 </template>
 
+<script setup lang="ts">
+import { navigateTo } from '#app'
 
-<script setup>
-import { onMounted } from 'vue'
-
-const stats = { users: 124, tours: 28, bookings: 156, revenue: 45872 }
-
-const recentBookings = [
-  { id: 1, user: 'Kartik Gupta', tour: 'Paris City Tour',  price: 450, status: 'confirmed' },
-  { id: 2, user: 'Vishal Negi',  tour: 'Rome Highlights',  price: 320, status: 'pending' },
-  { id: 3, user: 'Raj Rajput',   tour: 'Tokyo Adventure',  price: 780, status: 'completed' }
-]
-
-const topTours = [
-  { title: 'Paris City Tour',  bookings: 24, revenue: '$12,450' },
-  { title: 'Rome Highlights',  bookings: 18, revenue: '$8,920' },
-  { title: 'Tokyo Adventure',  bookings: 15, revenue: '$7,350' }
-]
-
-onMounted(() => {
-  $('#recent-bookings-table').DataTable()
-  $('#top-tours-table').DataTable()
+definePageMeta({
+  layout: 'auth'
 })
+
+const email = ref('')
+const password = ref('')
+const status = reactive({
+  type: '',
+  message: ''
+})
+
+const statusClasses = computed(() => {
+  if (status.type === 'success') {
+    return 'border border-emerald-400/70 bg-emerald-500/10 text-emerald-200'
+  }
+  if (status.type === 'error') {
+    return 'border border-rose-500/70 bg-rose-500/10 text-rose-200'
+  }
+  return ''
+})
+
+// GraphQL login mutation
+const LOGIN_MUTATION = `
+  mutation Login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      token
+      user {
+        id
+        full_name
+        email
+        role_id
+      }
+    }
+  }
+`
+
+const handleLogin = async () => {
+  status.type = ''
+  status.message = ''
+
+  try {
+    const res = await fetch('/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: LOGIN_MUTATION,
+        variables: {
+          email: email.value,
+          password: password.value
+        }
+      })
+    })
+
+    if (!res.ok) {
+      status.type = 'error'
+      status.message = 'HTTP error ' + res.status
+      return
+    }
+
+    const { data, errors } = await res.json()
+
+    if (errors && errors.length) {
+      status.type = 'error'
+      status.message = errors[0].message || 'Login failed'
+      return
+    }
+
+    const { token, user } = data.login
+    console.log('token from API:', token)
+    console.log('user from API:', user)
+
+    const roleId = user.role_id
+    if (roleId !== '1') {
+      status.type = 'error'
+      status.message = 'Access denied. You are not an admin.'
+      return
+    }
+
+    status.type = 'success'
+    status.message = 'Access granted. Redirecting to dashboard...'
+
+    await navigateTo('/dashboard')
+  } catch (err) {
+    console.error('Network error:', err)
+    status.type = 'error'
+    status.message = 'Network error. Please try again.'
+  }
+}
 </script>
+
