@@ -2,7 +2,7 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const body = await readBody(event)
 
-  const apiBase = config.apiBaseUrl  // ✅ Fixed: public nahi chahiye server-side
+  const apiBase = config.public.apiBaseUrl
 
   try {
     const res = await $fetch.raw(`${apiBase}/query`, {
