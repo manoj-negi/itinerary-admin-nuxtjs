@@ -370,6 +370,7 @@ const TOURS_QUERY = `
       duration_days
       created_by
       status
+      images { id file_url alt_text }
     }
   }
 `
@@ -378,10 +379,10 @@ const CREATE_TOUR = `
   mutation CreateTour(
     $title: String!
     $description: String
-    $category_id: ID!
-    $city_id: ID!
+    $category_id: UUID!
+    $city_id: UUID!
     $duration_days: Int!
-    $created_by: ID!
+    $created_by: UUID!
     $status: String!
     $images: [TourImageInput!]
   ) {
@@ -408,11 +409,11 @@ const CREATE_TOUR = `
 
 const UPDATE_TOUR = `
   mutation UpdateTour(
-    $id: ID!
+    $id: UUID!
     $title: String
     $description: String
-    $category_id: ID
-    $city_id: ID
+    $category_id: UUID
+    $city_id: UUID
     $duration_days: Int
     $status: String
     $images: [TourImageInput!]
@@ -439,9 +440,25 @@ const UPDATE_TOUR = `
 `
 
 const DELETE_TOUR = `
-  mutation DeleteTour($id: ID!) {
+  mutation DeleteTour($id: UUID!) {
     deleteTour(id: $id) {
       id
+    }
+  }
+`
+
+const GET_TOUR = `
+  query GetTour($id: UUID!) {
+    tour(id: $id) {
+      id
+      title
+      description
+      category_id
+      city_id
+      duration_days
+      status
+      created_by
+      images { id file_url alt_text }
     }
   }
 `
@@ -469,20 +486,45 @@ const openCreate = () => {
   showForm.value = true
 }
 
-const openEdit = (tour) => {
-  form.value = {
-    id: tour.id,
-    title: tour.title,
-    description: tour.description || '',
-    category_id: String(tour.category_id),
-    city_id: String(tour.city_id),
-    duration_days: tour.duration_days,
-    status: tour.status,
-    created_by: tour.created_by || '1',
-    newImages: []
+const openEdit = async (tour) => {
+  try {
+    // Sirf YE tour fetch karo
+    const res = await fetch('/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: GET_TOUR,
+        variables: { id: tour.id }
+      })
+    });
+
+    const { data, errors } = await res.json();
+    
+    if (errors?.length || !data?.tour) {
+      alert('Failed to load tour details');
+      return;
+    }
+
+    // Sirf YE tour ka data form mein
+    form.value = {
+      id: data.tour.id,
+      title: data.tour.title,
+      description: data.tour.description || '',
+      category_id: String(data.tour.category_id),
+      city_id: String(data.tour.city_id),
+      duration_days: data.tour.duration_days,
+      status: data.tour.status,
+      created_by: data.tour.created_by || '1',
+      newImages: []
+    };
+    
+  } catch (err) {
+    console.error('Error loading tour:', err);
+    alert('Failed to load tour');
   }
-  isEditing.value = true
-  showForm.value = true
+
+  isEditing.value = true;
+  showForm.value = true;
 }
 
 const closeForm = () => {

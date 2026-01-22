@@ -9,9 +9,22 @@ export default defineNuxtConfig({
   css: ['~/assets/css/tailwind.css'],
 
   colorMode: {
-    preference: 'system', // default theme
-    fallback: 'light',    // if system not available
-    classSuffix: ''       // use .dark / .light
+    preference: 'system',
+    fallback: 'light',
+    classSuffix: ''
+  },
+
+  // ✅ Fixed Runtime Config
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000'
+    }
+  },
+
+  // ✅ TypeScript Fix
+  typescript: {
+    shim: false,
+    strict: true
   },
 
   compatibilityDate: '2025-12-02'

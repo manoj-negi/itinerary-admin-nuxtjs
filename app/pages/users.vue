@@ -204,7 +204,7 @@ const CREATE_USER = `
 
 const UPDATE_USER = `
   mutation UpdateUser(
-    $id: ID!
+    $id: UUID!
     $full_name: String!
     $email: String!
     $phone: String
@@ -225,9 +225,21 @@ const UPDATE_USER = `
 `
 
 const DELETE_USER = `
-  mutation DeleteUser($id: ID!) {
+  mutation DeleteUser($id: UUID!) {
     deleteUser(id: $id) {
       id
+    }
+  }
+`
+
+const GET_USER = `
+  query GetUser($id: UUID!) {
+    user(id: $id) {
+      id
+      full_name
+      email
+      phone
+      created_at
     }
   }
 `
@@ -242,16 +254,42 @@ const openCreate = () => {
   showForm.value = true
 }
 
-const openEdit = (user) => {
-  form.value = {
-    id: user.id,
-    name: user.full_name,
-    email: user.email,
-    phone: user.phone || '',
-    password: ''
+const openEdit = async (user) => {
+  try {
+    // Sirf YE user fetch karo
+    const res = await fetch('/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: GET_USER,
+        variables: { id: user.id }
+      })
+    });
+
+    const json = await res.json();
+    const { data, errors } = json;
+
+    if (errors?.length || !data?.user) {
+      alert('Failed to load user data');
+      return;
+    }
+
+    // Sirf YE user ka data form mein dalo
+    form.value = {
+      id: data.user.id,
+      name: data.user.full_name,
+      email: data.user.email,
+      phone: data.user.phone || '',
+      password: ''
+    };
+    
+  } catch (err) {
+    console.error('Error loading user:', err);
+    alert('Failed to load user');
   }
-  isEditing.value = true
-  showForm.value = true
+
+  isEditing.value = true;
+  showForm.value = true;
 }
 
 const closeForm = () => {

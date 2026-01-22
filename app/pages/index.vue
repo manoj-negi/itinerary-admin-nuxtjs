@@ -133,7 +133,7 @@ const handleLogin = async () => {
     console.log('user from API:', user)
 
     const roleId = user.role_id
-    if (roleId !== '1') {
+    if (roleId !== '019bbc56-d806-725e-9586-608344a1a861') {
       status.type = 'error'
       status.message = 'Access denied. You are not an admin.'
       return

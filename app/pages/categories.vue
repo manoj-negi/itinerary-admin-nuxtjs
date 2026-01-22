@@ -293,7 +293,7 @@ const CREATE_CATEGORY = `
 
 const UPDATE_CATEGORY = `
   mutation UpdateCategory(
-    $id: ID!
+    $id: UUID!
     $category_name: String
     $description: String
     $images: [CategoryImageInput!]
@@ -313,8 +313,19 @@ const UPDATE_CATEGORY = `
 `
 
 const DELETE_CATEGORY = `
-  mutation DeleteCategory($id: ID!) {
+  mutation DeleteCategory($id: UUID!) {
     deleteCategory(id: $id) { id }
+  }
+`
+
+const GET_CATEGORY = `
+  query GetCategory($id: UUID!) {
+    category(id: $id) {
+      id
+      category_name
+      description
+      images { id file_url alt_text }
+    }
   }
 `
 
@@ -334,15 +345,36 @@ const openCreate = () => {
   showForm.value = true
 }
 
-const openEdit = (category) => {
-  form.value = {
-    id: category.id,
-    category_name: category.category_name,
-    description: category.description || '',
-    newImages: []
+const openEdit = async (category) => {
+  try {
+    const res = await fetch('/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: GET_CATEGORY,
+        variables: { id: category.id }
+      })
+    })
+
+    const { data, errors } = await res.json()
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`)
+    if (errors?.length) throw new Error(errors[0].message || 'Failed to load category')
+    if (!data?.category) throw new Error('Category not found')
+
+    const c = data.category
+    form.value = {
+      id: c.id,
+      category_name: c.category_name,
+      description: c.description || '',
+      newImages: []
+    }
+
+    isEditing.value = true
+    showForm.value = true
+  } catch (err) {
+    console.error('Load category error:', err)
+    alert(err.message || 'Failed to load category')
   }
-  isEditing.value = true
-  showForm.value = true
 }
 
 const closeForm = () => {

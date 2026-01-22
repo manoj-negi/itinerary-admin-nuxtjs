@@ -209,7 +209,7 @@ const BOOKINGS_QUERY = `
 // IMPORTANT: Backend must have updateBooking for this to work.
 const UPDATE_BOOKING = `
   mutation UpdateBooking(
-    $id: ID!
+    $id: UUID!
     $status: String
     $total_price: String
     $travel_start_date: String
@@ -232,8 +232,23 @@ const UPDATE_BOOKING = `
 `
 
 const DELETE_BOOKING = `
-  mutation DeleteBooking($id: ID!) {
+  mutation DeleteBooking($id: UUID!) {
     deleteBooking(id: $id) { id }
+  }
+`
+
+const GET_BOOKING = `
+  query GetBooking($id: UUID!) {
+    booking(id: $id) {
+      id
+      user_id
+      package_id
+      total_price
+      status
+      booking_date
+      travel_start_date
+      travel_end_date
+    }
   }
 `
 
@@ -251,15 +266,36 @@ const closeForm = () => {
   showForm.value = false
 }
 
-const openEdit = (booking) => {
-  form.value = {
-    id: booking.id,
-    status: booking.status || 'pending',
-    total_price: booking.total_price != null ? String(booking.total_price) : '',
-    travel_start_date: booking.travel_start_date || '',
-    travel_end_date: booking.travel_end_date || ''
+const openEdit = async (booking) => {
+  try {
+    const res = await fetch('/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: GET_BOOKING,
+        variables: { id: booking.id }
+      })
+    })
+
+    const { data, errors } = await res.json()
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`)
+    if (errors?.length) throw new Error(errors[0].message || 'Failed to load booking')
+    if (!data?.booking) throw new Error('Booking not found')
+
+    const b = data.booking
+    form.value = {
+      id: b.id,
+      status: b.status || 'pending',
+      total_price: b.total_price != null ? String(b.total_price) : '',
+      travel_start_date: b.travel_start_date || '',
+      travel_end_date: b.travel_end_date || ''
+    }
+
+    showForm.value = true
+  } catch (err) {
+    console.error('Load booking error:', err)
+    alert(err.message || 'Failed to load booking')
   }
-  showForm.value = true
 }
 
 const loadBookings = async () => {

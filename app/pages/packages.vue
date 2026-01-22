@@ -350,7 +350,7 @@ const PACKAGES_QUERY = `
 
 const CREATE_PACKAGE = `
   mutation CreatePackage(
-    $tour_id: ID!
+    $tour_id: UUID!
     $package_name: String!
     $price: String!
     $currency: String!
@@ -381,8 +381,8 @@ const CREATE_PACKAGE = `
 
 const UPDATE_PACKAGE = `
   mutation UpdatePackage(
-    $id: ID!
-    $tour_id: ID
+    $id: UUID!
+    $tour_id: UUID
     $package_name: String
     $price: String
     $currency: String
@@ -413,8 +413,23 @@ const UPDATE_PACKAGE = `
 `
 
 const DELETE_PACKAGE = `
-  mutation DeletePackage($id: ID!) {
+  mutation DeletePackage($id: UUID!) {
     deletePackage(id: $id) { id }
+  }
+`
+
+const GET_PACKAGE = `
+  query GetPackage($id: UUID!) {
+    package(id: $id) {
+      id
+      tour_id
+      package_name
+      price
+      currency
+      occupancy
+      is_featured
+      images { id file_url alt_text }
+    }
   }
 `
 
@@ -438,19 +453,40 @@ const openCreate = () => {
   showForm.value = true
 }
 
-const openEdit = (pkg) => {
-  form.value = {
-    id: pkg.id,
-    tour_id: String(pkg.tour_id),
-    package_name: pkg.package_name,
-    price: String(pkg.price ?? ''),
-    currency: pkg.currency || 'INR',
-    occupancy: pkg.occupancy || '',
-    is_featured: !!pkg.is_featured,
-    newImages: []
+const openEdit = async (pkg) => {
+  try {
+    const res = await fetch('/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: GET_PACKAGE,
+        variables: { id: pkg.id }
+      })
+    })
+
+    const { data, errors } = await res.json()
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`)
+    if (errors?.length) throw new Error(errors[0].message || 'Failed to load package')
+    if (!data?.package) throw new Error('Package not found')
+
+    const p = data.package
+    form.value = {
+      id: p.id,
+      tour_id: String(p.tour_id),
+      package_name: p.package_name,
+      price: String(p.price ?? ''),
+      currency: p.currency || 'INR',
+      occupancy: p.occupancy || '',
+      is_featured: !!p.is_featured,
+      newImages: []
+    }
+
+    isEditing.value = true
+    showForm.value = true
+  } catch (err) {
+    console.error('Load package error:', err)
+    alert(err.message || 'Failed to load package')
   }
-  isEditing.value = true
-  showForm.value = true
 }
 
 const closeForm = () => {

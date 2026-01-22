@@ -301,7 +301,7 @@ const CREATE_POI = `
   mutation CreatePoi(
     $name: String!
     $description: String
-    $city_id: ID!
+    $city_id: UUID!
     $type: String!
     $images: [POIImageInput!]
   ) {
@@ -323,10 +323,10 @@ const CREATE_POI = `
 
 const UPDATE_POI = `
   mutation UpdatePoi(
-    $id: ID!
+    $id: UUID!
     $name: String
     $description: String
-    $city_id: ID
+    $city_id: UUID
     $type: String
     $images: [POIImageInput!]
   ) {
@@ -348,9 +348,21 @@ const UPDATE_POI = `
 `
 
 const DELETE_POI = `
-  mutation DeletePoi($id: ID!) {
+  mutation DeletePoi($id: UUID!) {
     deletePOI(id: $id) {
       id
+    }
+  }
+`
+
+const GET_POI = `
+  query GetPoi($id: UUID!) {
+    poi(id: $id) {
+      id 
+      name 
+      description 
+      city_id 
+      type
     }
   }
 `
@@ -373,15 +385,35 @@ const openCreate = () => {
   showForm.value = true
 }
 
-const openEdit = (poi) => {
-  form.value = {
-    id: poi.id,
-    name: poi.name,
-    description: poi.description || '',
-    city_id: String(poi.city_id),
-    type: poi.type || 'landmark',
-    newImages: []
+const openEdit = async (poi) => {
+  try {
+    const res = await fetch('/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: GET_POI,        // ← NEW!
+        variables: { id: poi.id }
+      })
+    })
+
+    const { data, errors } = await res.json()
+    if (!res.ok || errors?.length || !data?.poi) {
+      alert('Failed to load POI')
+      return
+    }
+
+    form.value = {
+      id: data.poi.id,
+      name: data.poi.name,
+      description: data.poi.description || '',
+      city_id: String(data.poi.city_id),
+      type: data.poi.type || 'landmark',
+      newImages: []
+    }
+  } catch (err) {
+    alert('Failed to load POI')
   }
+
   isEditing.value = true
   showForm.value = true
 }
