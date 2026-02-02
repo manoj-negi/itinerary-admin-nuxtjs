@@ -21,8 +21,8 @@
             <thead>
               <tr class="bg-gray-50 dark:bg-slate-800">
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">ID</th>
-                <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Customer ID</th>
-                <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Package ID</th>
+                <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Customer Name</th>
+                <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Package Name</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Price</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Status</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Booking Date</th>
@@ -35,8 +35,8 @@
             <tbody>
               <tr v-for="(booking, index) in bookings" :key="booking.id" class="hover:bg-gray-50 dark:hover:bg-slate-800">
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4">{{ index + 1 }}</td>
-                <td class="border-b border-gray-200 dark:border-slate-700 p-4 font-semibold">User #{{ booking.user_id }}</td>
-                <td class="border-b border-gray-200 dark:border-slate-700 p-4">Pkg #{{ booking.package_id }}</td>
+                <td class="border-b border-gray-200 dark:border-slate-700 p-4 font-semibold">{{ booking.user?.full_name }}</td>
+                <td class="border-b border-gray-200 dark:border-slate-700 p-4">{{ booking.package?.package_name }}</td>
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4 font-semibold text-green-600">
                   {{ booking.total_price }}
                 </td>
@@ -202,6 +202,8 @@ const BOOKINGS_QUERY = `
       booking_date
       travel_start_date
       travel_end_date
+      user { full_name }
+      package { package_name }
     }
   }
 `

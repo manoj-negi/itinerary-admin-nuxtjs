@@ -25,10 +25,10 @@
           <table id="pois-table" class="display min-w-full border-collapse text-gray-900 dark:text-slate-100">
             <thead>
               <tr class="bg-gray-50 dark:bg-slate-800">
-                <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">#</th>
+                <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">ID</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Name</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Description</th>
-                <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">City ID</th>
+                <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">City</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Type</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Actions</th>
               </tr>
@@ -43,7 +43,7 @@
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4">{{ index + 1 }}</td>
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4 font-semibold">{{ poi.name }}</td>
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4 max-w-xs truncate">{{ poi.description }}</td>
-                <td class="border-b border-gray-200 dark:border-slate-700 p-4">{{ poi.city_id }}</td>
+                <td class="border-b border-gray-200 dark:border-slate-700 p-4">{{ poi.city?.name || 'N/A' }}</td>
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4">{{ poi.type }}</td>
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4">
                   <div class="flex gap-2">
@@ -123,15 +123,18 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-slate-300">
-                  City ID *
+                  City *
                 </label>
-                <input
+                <select
                   v-model="form.city_id"
-                  type="text"
                   required
                   class="w-full border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-3 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                  placeholder="e.g., 1"
-                />
+                >
+                  <option value="" disabled>Select a city</option>
+                  <option v-for="c in cities" :key="c.id" :value="c.id">
+                    {{ c.name }}
+                  </option>
+                </select>
               </div>
 
               <div>
@@ -170,7 +173,7 @@
 
                 <button
                   type="button"
-                  @click="$refs.imageInput?.click()"
+                  @click="imageInput?.click()"
                   class="flex flex-col items-center justify-center w-full text-center py-8 cursor-pointer"
                   :disabled="form.newImages.length >= 10"
                 >
@@ -272,6 +275,7 @@ const isEditing = ref(false)
 const isSubmitting = ref(false)
 
 const pois = ref([])
+const cities = ref([])
 const imageInput = ref(null)
 
 let dataTable = null
@@ -293,6 +297,11 @@ const POIS_QUERY = `
       description
       city_id
       type
+      city { name }
+    }
+    cities {
+      id
+      name
     }
   }
 `
@@ -363,6 +372,7 @@ const GET_POI = `
       description 
       city_id 
       type
+      city { name }
     }
   }
 `
@@ -406,7 +416,7 @@ const openEdit = async (poi) => {
       id: data.poi.id,
       name: data.poi.name,
       description: data.poi.description || '',
-      city_id: String(data.poi.city_id),
+      city_id: data.poi.city_id,
       type: data.poi.type || 'landmark',
       newImages: []
     }
@@ -560,6 +570,8 @@ const loadPois = async () => {
     if (errors && errors.length) throw new Error(errors[0].message || 'Failed to load POIs')
 
     pois.value = data?.pois || []
+    cities.value = data?.cities || []
+
 
     await nextTick()
     if (dataTable) dataTable.destroy()

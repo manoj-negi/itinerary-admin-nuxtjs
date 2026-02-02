@@ -42,8 +42,8 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="b in recentBookings" :key="b.id" class="hover:bg-gray-50 dark:hover:bg-slate-800">
-                <td class="border-b border-gray-200 dark:border-slate-700">{{ b.id }}</td>
+              <tr v-for="(b, index) in recentBookings" :key="b.id" class="hover:bg-gray-50 dark:hover:bg-slate-800">
+                <td class="border-b border-gray-200 dark:border-slate-700">{{ index + 1 }}</td>
                 <td class="border-b border-gray-200 dark:border-slate-700 font-medium">{{ b.user }}</td>
                 <td class="border-b border-gray-200 dark:border-slate-700">{{ b.tour }}</td>
                 <td class="border-b border-gray-200 dark:border-slate-700 font-semibold text-green-500">${{ b.price }}</td>
@@ -88,7 +88,7 @@ import { onMounted, ref, nextTick } from 'vue'
 
 const stats = ref({ users: 0, tours: 0, bookings: 0, revenue: 0 })
 const recentBookings = ref([])
-const topTours = ref([]) // (we'll calculate top packages)
+const topTours = ref([])
 
 let recentDT = null
 let topDT = null
@@ -99,12 +99,11 @@ const DASHBOARD_QUERY = `
     tours { id status }
     bookings {
       id
-      user_id
-      package_id
       total_price
       status
       booking_date
-      travel_start_date
+      user { full_name }
+      package { package_name }
     }
   }
 `
@@ -114,19 +113,18 @@ const toNumberSafe = (v) => {
   return Number.isFinite(n) ? n : 0
 }
 
-const formatMoney = (n) => {
-  return '$' + Math.round(n).toLocaleString()
-}
+const formatMoney = (n) => '$' + Math.round(n).toLocaleString()
 
 const initTables = async () => {
   await nextTick()
 
-  // Destroy before re-init to avoid "Cannot reinitialise DataTable"
-  if ($.fn.DataTable.isDataTable('#recent-bookings-table')) {
-    $('#recent-bookings-table').DataTable().destroy()
+  if (recentDT) {
+    recentDT.destroy()
+    recentDT = null
   }
-  if ($.fn.DataTable.isDataTable('#top-tours-table')) {
-    $('#top-tours-table').DataTable().destroy()
+  if (topDT) {
+    topDT.destroy()
+    topDT = null
   }
 
   recentDT = $('#recent-bookings-table').DataTable()
@@ -151,39 +149,38 @@ const loadDashboard = async () => {
 
   // Stats
   const revenueSum = bookings
-  .filter(b => ['confirmed', 'completed'].includes(b.status))
-  .reduce((sum, b) => sum + toNumberSafe(b.total_price), 0)
+    .filter(b => ['confirmed', 'completed'].includes(b.status))
+    .reduce((sum, b) => sum + toNumberSafe(b.total_price), 0)
 
   stats.value = {
     users: users.length,
-    tours: tours.filter(t => t.status === 'published').length, // "Active Tours"
+    tours: tours.filter(t => t.status === 'published').length,
     bookings: bookings.length,
     revenue: revenueSum
   }
 
-  // Recent bookings (latest by booking_date; fallback: by id)
+  // Recent bookings (latest)
   const sortedBookings = [...bookings].sort((a, b) => {
     const ad = a.booking_date ? new Date(a.booking_date).getTime() : 0
     const bd = b.booking_date ? new Date(b.booking_date).getTime() : 0
-    if (bd !== ad) return bd - ad
-    return Number(b.id) - Number(a.id)
+    return bd - ad
   })
 
   recentBookings.value = sortedBookings.slice(0, 10).map(b => ({
     id: b.id,
-    user: `User #${b.user_id}`,
-    tour: `Package #${b.package_id}`,
+    user: b.user?.full_name || 'N/A',
+    tour: b.package?.package_name || 'N/A',
     price: toNumberSafe(b.total_price),
     status: b.status
   }))
 
-  // Top “Tours” (safe version): Top packages by count + revenue
+  // Top “Tours” (actually top packages by revenue/bookings)
   const byPkg = new Map()
   for (const b of bookings) {
     if (!['confirmed', 'completed'].includes(b.status)) continue
-    
-    const key = String(b.package_id)
-    const cur = byPkg.get(key) || { title: `Package #${key}`, bookings: 0, revenue: 0 }
+    const key = b.package?.package_name || 'Unknown Package'
+
+    const cur = byPkg.get(key) || { title: key, bookings: 0, revenue: 0 }
     cur.bookings += 1
     cur.revenue += toNumberSafe(b.total_price)
     byPkg.set(key, cur)
@@ -210,4 +207,5 @@ onMounted(async () => {
   }
 })
 </script>
+
 
