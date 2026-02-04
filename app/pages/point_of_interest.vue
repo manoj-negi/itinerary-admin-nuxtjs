@@ -377,6 +377,61 @@ const GET_POI = `
   }
 `
 
+/* NEW — presigned upload mutation */
+const GET_UPLOAD_URL = `
+mutation GetUploadUrl($folder:String!, $fileName:String!, $contentType:String!){
+  getUploadUrl(folder:$folder, fileName:$fileName, contentType:$contentType){
+    uploadUrl
+    publicUrl
+  }
+}
+`
+
+// S3 upload logic
+const uploadFileToS3 = async (file) => {
+  const res = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: GET_UPLOAD_URL,
+      variables: {
+        folder: 'pois',
+        fileName: file.name,
+        contentType: file.type
+      }
+    })
+  })
+
+  const { data } = await res.json()
+
+  const uploadUrl = data.getUploadUrl.uploadUrl
+  const publicUrl = data.getUploadUrl.publicUrl
+
+  await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type },
+    body: file
+  })
+
+  return publicUrl
+}
+
+/* upload ALL images before mutation */
+const prepareImagesForMutation = async () => {
+  const result = []
+
+  for (const img of form.value.newImages) {
+    const url = await uploadFileToS3(img.file)
+
+    result.push({
+      file_url: url,
+      alt_text: img.altText || null
+    })
+  }
+
+  return result
+}
+
 const resetForm = () => {
   form.value = {
     id: null,
@@ -401,7 +456,7 @@ const openEdit = async (poi) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        query: GET_POI,        // ← NEW!
+        query: GET_POI,
         variables: { id: poi.id }
       })
     })
@@ -463,13 +518,7 @@ const updateNewImageAlt = (index, altText) => {
   form.value.newImages[index].altText = altText.trim().slice(0, 100)
 }
 
-const prepareImagesForMutation = () => {
-  return form.value.newImages.map(img => ({
-    file_url: img.file.name,
-    alt_text: img.altText || null
-  }))
-}
-
+// Create and Update
 const submitPoi = async () => {
   const hasImagesWithoutAlt = form.value.newImages.some(img => !img.altText)
   if (hasImagesWithoutAlt && !confirm('Some images lack alt text. Continue anyway?')) {
@@ -477,49 +526,41 @@ const submitPoi = async () => {
   }
 
   isSubmitting.value = true
+
   try {
-    const imagesInput = form.value.newImages.length > 0 ? prepareImagesForMutation() : []
+    /* upload images FIRST */
+    const imagesInput =
+      form.value.newImages.length > 0
+        ? await prepareImagesForMutation()
+        : []
 
-    let res
-    if (isEditing.value && form.value.id != null) {
-      res = await fetch('/api/graphql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: UPDATE_POI,
-          variables: {
-            id: form.value.id,
-            name: form.value.name || undefined,
-            description: form.value.description || undefined,
-            city_id: form.value.city_id || undefined,
-            type: form.value.type || undefined,
-            images: imagesInput.length > 0 ? imagesInput : undefined
-          }
-        })
+    const isUpdate = isEditing.value && form.value.id
+
+    await fetch('/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: isUpdate ? UPDATE_POI : CREATE_POI,
+        variables: isUpdate
+          ? {
+              id: form.value.id,
+              name: form.value.name || undefined,
+              description: form.value.description || undefined,
+              city_id: form.value.city_id || undefined,
+              type: form.value.type || undefined,
+              images: imagesInput
+            }
+          : {
+              name: form.value.name,
+              description: form.value.description || null,
+              city_id: form.value.city_id,
+              type: form.value.type,
+              images: imagesInput
+            }
       })
-    } else {
-      res = await fetch('/api/graphql', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: CREATE_POI,
-          variables: {
-            name: form.value.name,
-            description: form.value.description || null,
-            city_id: form.value.city_id,
-            type: form.value.type,
-            images: imagesInput
-          }
-        })
-      })
-    }
+    })
 
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`)
-
-    const { errors } = await res.json()
-    if (errors && errors.length) throw new Error(errors[0].message || 'Operation failed')
-
-    alert(isEditing.value ? 'POI updated successfully!' : 'POI created successfully!')
+    alert(isUpdate ? 'POI updated successfully!' : 'POI created successfully!')
     closeForm()
     window.location.reload()
   } catch (err) {
@@ -572,7 +613,6 @@ const loadPois = async () => {
     pois.value = data?.pois || []
     cities.value = data?.cities || []
 
-
     await nextTick()
     if (dataTable) dataTable.destroy()
     dataTable = $('#pois-table').DataTable()
@@ -586,3 +626,4 @@ onMounted(async () => {
   await loadPois()
 })
 </script>
+

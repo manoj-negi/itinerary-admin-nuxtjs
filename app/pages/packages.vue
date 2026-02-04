@@ -444,6 +444,61 @@ const GET_PACKAGE = `
   }
 `
 
+/* NEW — presigned upload mutation */
+const GET_UPLOAD_URL = `
+mutation GetUploadUrl($folder:String!, $fileName:String!, $contentType:String!){
+  getUploadUrl(folder:$folder, fileName:$fileName, contentType:$contentType){
+    uploadUrl
+    publicUrl
+  }
+}
+`
+
+// S3 upload logic
+const uploadFileToS3 = async (file) => {
+  const res = await fetch('/api/graphql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: GET_UPLOAD_URL,
+      variables: {
+        folder: 'packages',
+        fileName: file.name,
+        contentType: file.type
+      }
+    })
+  })
+
+  const { data } = await res.json()
+
+  const uploadUrl = data.getUploadUrl.uploadUrl
+  const publicUrl = data.getUploadUrl.publicUrl
+
+  await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type },
+    body: file
+  })
+
+  return publicUrl
+}
+
+/* upload ALL images before mutation */
+const prepareImagesForMutation = async () => {
+  const result = []
+
+  for (const img of form.value.newImages) {
+    const url = await uploadFileToS3(img.file)
+
+    result.push({
+      file_url: url,
+      alt_text: img.altText || null
+    })
+  }
+
+  return result
+}
+
 const resetForm = () => {
   form.value = {
     id: null,
@@ -534,23 +589,23 @@ const removeNewImage = (index) => {
 const updateNewImageAlt = (index, altText) => {
   form.value.newImages[index].altText = (altText || '').trim().slice(0, 100)
 }
-const prepareImagesForMutation = () => {
-  return form.value.newImages.map(img => ({
-    file_url: img.file.name,
-    alt_text: img.altText ? img.altText : null
-  }))
-}
 
+// Create and Update
 const submitPackage = async () => {
   const hasImagesWithoutAlt = form.value.newImages.some(img => !img.altText)
   if (hasImagesWithoutAlt && !confirm('Some images lack alt text. Continue anyway?')) return
 
   isSubmitting.value = true
   try {
-    const isUpdate = isEditing.value && form.value.id != null
-    const imagesInput = form.value.newImages.length > 0 ? prepareImagesForMutation() : []
+    /* upload images FIRST */
+    const imagesInput =
+      form.value.newImages.length > 0
+        ? await prepareImagesForMutation()
+        : []
 
-    const res = await fetch('/api/graphql', {
+    const isUpdate = isEditing.value && form.value.id != null
+
+    await fetch('/api/graphql', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -564,7 +619,7 @@ const submitPackage = async () => {
               currency: form.value.currency || undefined,
               occupancy: form.value.occupancy || undefined,
               is_featured: form.value.is_featured,
-              images: imagesInput.length > 0 ? imagesInput : undefined
+              images: imagesInput
             }
           : {
               tour_id: form.value.tour_id,
@@ -577,13 +632,6 @@ const submitPackage = async () => {
             }
       })
     })
-
-    if (!res.ok) throw new Error(`HTTP error ${res.status}`)
-
-    const json = await res.json()
-    if (json.errors && json.errors.length) {
-      throw new Error(json.errors[0].message || 'Operation failed')
-    }
 
     alert(isUpdate ? 'Package updated successfully!' : 'Package created successfully!')
     closeForm()
@@ -637,7 +685,6 @@ const loadPackages = async () => {
     packages.value = data?.packages || []
     tours.value = (data?.tours || []).filter(t => t.status === 'published')
 
-
     await nextTick()
     if (dataTable) dataTable.destroy()
     dataTable = $('#packages-table').DataTable()
@@ -651,3 +698,4 @@ onMounted(async () => {
   await loadPackages()
 })
 </script>
+
