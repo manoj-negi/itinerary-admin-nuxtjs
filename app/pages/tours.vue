@@ -51,10 +51,10 @@
                   {{ tour.description }}
                 </td>
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4">
-                  {{ tour.category_id }}
+                  {{ tour.category?.category_name || 'N/A' }}
                 </td>
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4">
-                  {{ tour.city_id }}
+                  {{ tour.city?.name || 'N/A' }}
                 </td>
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4">
                   {{ tour.duration_days }} days
@@ -143,29 +143,47 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-slate-300">
-                  Category ID *
+                <label
+                  class="block text-sm font-medium mb-2 text-gray-700 dark:text-slate-300"
+                >
+                  Category *
                 </label>
-                <input
+                <select
                   v-model="form.category_id"
-                  type="text"
                   required
                   class="w-full border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-3 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                  placeholder="e.g., 1"
-                />
+                >
+                  <option value="" disabled>Select a category</option>
+                  <option
+                    v-for="category in categories"
+                    :key="category.id"
+                    :value="category.id"
+                  >
+                    {{ category.category_name }}
+                  </option>
+                </select>
               </div>
 
               <div>
-                <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-slate-300">
-                  City ID *
+                <label
+                  class="block text-sm font-medium mb-2 text-gray-700 dark:text-slate-300"
+                >
+                  City *
                 </label>
-                <input
+                <select
                   v-model="form.city_id"
-                  type="text"
                   required
                   class="w-full border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-3 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                  placeholder="e.g., 1"
-                />
+                >
+                  <option value="" disabled>Select a city</option>
+                  <option
+                    v-for="city in cities"
+                    :key="city.id"
+                    :value="city.id"
+                  >
+                    {{ city.name }}
+                  </option>
+                </select>
               </div>
             </div>
 
@@ -232,7 +250,7 @@
                 />
                 <button
                   type="button"
-                  @click="$refs.imageInput?.click()"
+                  @click="imageInput?.click()"
                   class="flex flex-col items-center justify-center w-full text-center py-8 cursor-pointer"
                   :disabled="form.newImages.length >= 10"
                 >
@@ -343,6 +361,9 @@ const isEditing = ref(false)
 const isSubmitting = ref(false)
 
 const tours = ref([])
+const categories = ref([])
+const cities = ref([])
+
 const imageInput = ref(null)
 
 let dataTable = null
@@ -371,7 +392,11 @@ const TOURS_QUERY = `
       created_by
       status
       images { id file_url alt_text }
+      category { category_name }
+      city { name }
     }
+    categories { id category_name }
+    cities { id name }
   }
 `
 
@@ -459,9 +484,13 @@ const GET_TOUR = `
       status
       created_by
       images { id file_url alt_text }
+      category { category_name }
+      city { name }
     }
   }
 `
+
+
 
 const resetForm = () => {
   form.value = {
@@ -510,8 +539,8 @@ const openEdit = async (tour) => {
       id: data.tour.id,
       title: data.tour.title,
       description: data.tour.description || '',
-      category_id: String(data.tour.category_id),
-      city_id: String(data.tour.city_id),
+      category_id: data.tour.category_id,
+      city_id: data.tour.city_id,
       duration_days: data.tour.duration_days,
       status: data.tour.status,
       created_by: data.tour.created_by || '1',
@@ -679,6 +708,8 @@ const loadTours = async () => {
     }
 
     tours.value = data?.tours || []
+    categories.value = data?.categories || []
+    cities.value = data?.cities || []
 
     await nextTick()
     if (dataTable) dataTable.destroy()

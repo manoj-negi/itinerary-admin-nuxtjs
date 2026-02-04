@@ -31,7 +31,7 @@
             <thead>
               <tr class="bg-gray-50 dark:bg-slate-800 text-left text-sm font-semibold text-gray-700 dark:text-slate-200">
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4">ID</th>
-                <th class="border-b border-gray-200 dark:border-slate-700 p-4">Tour ID</th>
+                <th class="border-b border-gray-200 dark:border-slate-700 p-4">Tour Name</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4">Package Name</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4">Price</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4">Currency</th>
@@ -50,7 +50,7 @@
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4 font-mono text-xs">
                   {{ index + 1 }}
                 </td>
-                <td class="border-b border-gray-200 dark:border-slate-700 p-4">{{ p.tour_id }}</td>
+                <td class="border-b border-gray-200 dark:border-slate-700 p-4">{{ p.tour?.title || 'N/A' }}</td>
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4 font-medium text-gray-900 dark:text-slate-50">
                   {{ p.package_name }}
                 </td>
@@ -118,15 +118,18 @@
           <form @submit.prevent="submitPackage" class="space-y-6">
             <div>
               <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-slate-300">
-                Tour ID *
+                Tour *
               </label>
-              <input
+              <select
                 v-model="form.tour_id"
-                type="text"
                 required
                 class="w-full border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-3 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                placeholder="e.g., 1"
-              />
+              >
+                <option value="" disabled>Select a tour</option>
+                <option v-for="t in tours" :key="t.id" :value="t.id">
+                  {{ t.title }}
+                </option>
+              </select>
             </div>
 
             <div>
@@ -208,7 +211,7 @@
                 />
                 <button
                   type="button"
-                  @click="$refs.imageInput?.click()"
+                  @click="imageInput?.click()"
                   class="flex flex-col items-center justify-center w-full text-center py-8 cursor-pointer"
                   :disabled="form.newImages.length >= 10"
                 >
@@ -315,6 +318,7 @@
 import { ref, onMounted, nextTick } from 'vue'
 
 const packages = ref([])
+const tours = ref([])
 const showForm = ref(false)
 const isEditing = ref(false)
 const isSubmitting = ref(false)
@@ -344,6 +348,12 @@ const PACKAGES_QUERY = `
       occupancy
       is_featured
       images { id file_url alt_text }
+      tour { title }
+    }
+    tours {
+      id
+      title
+      status
     }
   }
 `
@@ -429,6 +439,7 @@ const GET_PACKAGE = `
       occupancy
       is_featured
       images { id file_url alt_text }
+      tour { title }
     }
   }
 `
@@ -472,7 +483,7 @@ const openEdit = async (pkg) => {
     const p = data.package
     form.value = {
       id: p.id,
-      tour_id: String(p.tour_id),
+      tour_id: p.tour_id,
       package_name: p.package_name,
       price: String(p.price ?? ''),
       currency: p.currency || 'INR',
@@ -624,6 +635,8 @@ const loadPackages = async () => {
     if (errors && errors.length) throw new Error(errors[0].message || 'Failed to load packages')
 
     packages.value = data?.packages || []
+    tours.value = (data?.tours || []).filter(t => t.status === 'published')
+
 
     await nextTick()
     if (dataTable) dataTable.destroy()
