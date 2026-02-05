@@ -13,14 +13,14 @@
           + Add Category
         </button>
       </div>
- 
+
       <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm overflow-hidden">
         <div class="p-6 border-b border-gray-200 dark:border-slate-700">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-slate-50">
-            Tour Categories ({{ categories.length }})
+            Tour Categories
           </h2>
         </div>
- 
+
         <div class="overflow-x-auto p-6">
           <table
             id="categories-table"
@@ -28,13 +28,14 @@
           >
             <thead>
               <tr class="bg-gray-50 dark:bg-slate-800">
-                <th class="border-b border-gray-200 dark:border-slate-700 p-3">ID</th>
+                <th class="border-b border-gray-200 dark:border-slate-700 p-3">S.No.</th>
+                <th class="border-b border-gray-200 dark:border-slate-700 p-3">Image</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-3">Category</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-3">Description</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-3">Actions</th>
               </tr>
             </thead>
- 
+
             <tbody>
               <tr
                 v-for="(cat, index) in categories"
@@ -43,6 +44,18 @@
               >
                 <td class="border-b border-gray-200 dark:border-slate-700 p-3">
                   {{ index + 1 }}
+                </td>
+                <td class="border-b border-gray-200 dark:border-slate-700 p-3">
+                  <div v-if="cat.images && cat.images.length > 0" class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-700">
+                    <img
+                      :src="cat.images[0].file_url"
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div v-else class="w-12 h-12 rounded-lg bg-gray-200 dark:bg-slate-600 flex items-center justify-center">
+                    <span class="text-xs text-gray-500 dark:text-slate-400">No Image</span>
+                  </div>
                 </td>
                 <td class="border-b border-gray-200 dark:border-slate-700 p-3 font-medium">
                   {{ cat.category_name }}
@@ -67,9 +80,9 @@
                   </div>
                 </td>
               </tr>
- 
+
               <tr v-if="categories.length === 0">
-                <td colspan="4" class="border-b border-gray-200 dark:border-slate-700 p-12 text-center text-gray-500 dark:text-slate-400">
+                <td colspan="5" class="border-b border-gray-200 dark:border-slate-700 p-12 text-center text-gray-500 dark:text-slate-400">
                   No categories found. Create your first category!
                 </td>
               </tr>
@@ -78,7 +91,7 @@
         </div>
       </div>
     </div>
- 
+
     <!-- FORM VIEW -->
     <div
       :class="showForm ? 'block' : 'hidden'"
@@ -97,7 +110,7 @@
               ✕
             </button>
           </div>
- 
+
           <form @submit.prevent="submitCategory" class="space-y-6">
             <div>
               <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-slate-300">
@@ -110,7 +123,7 @@
                 class="w-full border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-3 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
               />
             </div>
- 
+
             <div>
               <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-slate-300">
                 Description
@@ -121,13 +134,13 @@
                 class="w-full border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-3 text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
               ></textarea>
             </div>
- 
+
             <!-- Images Section (same as Tours/Packages) -->
             <div>
               <label class="block text-sm font-medium mb-4 text-gray-700 dark:text-slate-300">
                 Category Images {{ isEditing ? '(Optional - will replace existing)' : '' }}
               </label>
- 
+
               <div class="border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl p-2 hover:border-indigo-400 transition-all bg-gray-50 dark:bg-slate-800/50">
                 <input
                   ref="imageInput"
@@ -154,12 +167,34 @@
                   </p>
                 </button>
               </div>
- 
+
+              <!-- ✅ Existing Images Preview (only in edit) -->
+              <div v-if="isEditing && form.existingImages?.length" class="mt-4">
+                <h4 class="text-sm font-medium text-gray-900 dark:text-slate-50 mb-3">
+                  Existing Images ({{ form.existingImages.length }})
+                </h4>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  <div
+                    v-for="img in form.existingImages"
+                    :key="img.id"
+                    class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border border-gray-200 dark:border-slate-700"
+                  >
+                    <img
+                      :src="img.file_url"
+                      :alt="img.alt_text || 'Category image'"
+                      class="w-full h-24 object-cover rounded-lg border shadow-sm"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div v-if="form.newImages.length > 0" class="mt-6">
                 <h4 class="text-sm font-medium text-gray-900 dark:text-slate-50 mb-4">
-                  Selected Images ({{ form.newImages.length }}/10)
+                 New Images ({{ form.newImages.length }}/10)
                 </h4>
- 
+
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                   <div
                     v-for="(image, index) in form.newImages"
@@ -169,7 +204,7 @@
                     <div class="relative mb-3">
                       <img
                         :src="image.preview"
-                        :alt="image.altText || 'Category image preview'"
+                        :alt="'Category image preview'"
                         class="w-full h-24 object-cover rounded-lg border shadow-sm"
                         loading="lazy"
                       />
@@ -182,34 +217,11 @@
                         ×
                       </button>
                     </div>
- 
-                    <div class="space-y-2">
-                      <label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">
-                        Alt Text (for accessibility)
-                      </label>
- 
-                      <div class="relative">
-                        <input
-                          v-model="image.altText"
-                          @input="updateNewImageAlt(index, $event.target.value)"
-                          :maxlength="100"
-                          placeholder="Describe this image"
-                          class="w-full px-3 py-2 pr-16 text-xs border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                        />
-                        <div class="absolute right-1 top-1/2 -translate-y-1/2 text-xs text-gray-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-1 rounded">
-                          {{ image.altText.length }}/100
-                        </div>
-                      </div>
- 
-                      <p v-if="image.altText" class="text-xs text-gray-500 dark:text-slate-400 mt-1 break-words max-w-full">
-                        Preview: <span class="font-normal">{{ image.altText }}</span>
-                      </p>
-                    </div>
                   </div>
                 </div>
               </div>
             </div>
- 
+
             <div class="flex justify-end space-x-3 pt-4">
               <button
                 type="button"
@@ -218,7 +230,7 @@
               >
                 Cancel
               </button>
- 
+
               <button
                 type="submit"
                 :disabled="isSubmitting || !form.category_name"
@@ -235,32 +247,33 @@
               </button>
             </div>
           </form>
- 
+
         </div>
       </div>
     </div>
   </div>
 </template>
- 
+
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
- 
+
 const showForm = ref(false)
 const isEditing = ref(false)
 const isSubmitting = ref(false)
- 
+
 const imageInput = ref(null)
 let dataTable = null
- 
+
 const form = ref({
   id: null,
   category_name: '',
   description: '',
+  existingImages: [],
   newImages: []
 })
- 
+
 const categories = ref([])
- 
+
 const CATEGORIES_QUERY = `
   query {
     categories {
@@ -271,7 +284,7 @@ const CATEGORIES_QUERY = `
     }
   }
 `
- 
+
 const CREATE_CATEGORY = `
   mutation CreateCategory(
     $category_name: String!
@@ -290,7 +303,7 @@ const CREATE_CATEGORY = `
     }
   }
 `
- 
+
 const UPDATE_CATEGORY = `
   mutation UpdateCategory(
     $id: UUID!
@@ -311,14 +324,14 @@ const UPDATE_CATEGORY = `
     }
   }
 `
- 
+
 const DELETE_CATEGORY = `
   mutation DeleteCategory($id: UUID!) {
     deleteCategory(id: $id) { id }
   }
 `
- 
-/*  NEW — presigned upload mutation */
+
+/* NEW — presigned upload mutation */
 const GET_UPLOAD_URL = `
 mutation GetUploadUrl($folder:String!, $fileName:String!, $contentType:String!){
   getUploadUrl(folder:$folder, fileName:$fileName, contentType:$contentType){
@@ -327,9 +340,8 @@ mutation GetUploadUrl($folder:String!, $fileName:String!, $contentType:String!){
   }
 }
 `
- 
+
 // S3 upload logic
- 
 const uploadFileToS3 = async (file) => {
   const res = await fetch('/api/graphql', {
     method: 'POST',
@@ -343,39 +355,37 @@ const uploadFileToS3 = async (file) => {
       }
     })
   })
- 
+
   const { data } = await res.json()
- 
+
   const uploadUrl = data.getUploadUrl.uploadUrl
   const publicUrl = data.getUploadUrl.publicUrl
- 
+
   await fetch(uploadUrl, {
     method: 'PUT',
     headers: { 'Content-Type': file.type },
     body: file
   })
- 
+
   return publicUrl
 }
- 
+
 /* upload ALL images before mutation */
 const prepareImagesForMutation = async () => {
   const result = []
- 
+
   for (const img of form.value.newImages) {
     const url = await uploadFileToS3(img.file)
- 
+
     result.push({
-      file_url: url,
-      alt_text: img.altText || null
+      file_url: url
     })
   }
- 
+
   return result
 }
- 
+
 // form logic
- 
 const resetForm = () => {
   form.value = {
     id: null,
@@ -385,52 +395,101 @@ const resetForm = () => {
   }
   isEditing.value = false
 }
- 
+
 const openCreate = () => {
   resetForm()
   showForm.value = true
 }
- 
+
+const openEdit = async (category) => {
+  try {
+    const res = await fetch('/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `
+          query GetCategory($id: UUID!) {
+            category(id: $id) {
+              id
+              category_name
+              description
+              images { id file_url alt_text }
+            }
+          }
+        `,
+        variables: { id: category.id }
+      })
+    })
+
+    const { data, errors } = await res.json()
+    
+    if (!res.ok || errors?.length || !data?.category) {
+      alert('Failed to load category details')
+      return
+    }
+
+    form.value = {
+      id: data.category.id,
+      category_name: data.category.category_name,
+      description: data.category.description || '',
+      existingImages: data.category.images || [],
+      newImages: []
+    }
+    
+  } catch (err) {
+    console.error('Error loading category:', err)
+    alert('Failed to load category')
+  }
+
+  isEditing.value = true
+  showForm.value = true
+}
+
 const closeForm = () => {
   showForm.value = false
 }
- 
+
 const handleImageSelect = (event) => {
   const files = Array.from(event.target.files || [])
- 
-  files.forEach(file => {
+  const maxImages = 10
+  const availableSlots = maxImages - form.value.newImages.length
+  
+  if (availableSlots <= 0) {
+    alert('Maximum 10 images allowed!')
+    return
+  }
+  
+  files.slice(0, availableSlots).forEach(file => {
     const reader = new FileReader()
- 
+    
     reader.onload = e => {
       form.value.newImages.push({
         file,
-        preview: e.target.result,
-        altText: ''
+        preview: e.target.result
       })
     }
- 
+    
     reader.readAsDataURL(file)
   })
 }
- 
+
 const removeNewImage = (index) => {
   form.value.newImages.splice(index, 1)
 }
- 
+
 // Create and Update
- 
 const submitCategory = async () => {
   isSubmitting.value = true
- 
+
   try {
     /* upload images FIRST */
     const imagesInput =
       form.value.newImages.length > 0
         ? await prepareImagesForMutation()
         : []
- 
+
     const isUpdate = isEditing.value && form.value.id
- 
+
     await fetch('/api/graphql', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -439,63 +498,84 @@ const submitCategory = async () => {
         variables: isUpdate
           ? {
               id: form.value.id,
-              category_name: form.value.category_name,
-              description: form.value.description,
+              category_name: form.value.category_name || undefined,
+              description: form.value.description || undefined,
               images: imagesInput
             }
           : {
               category_name: form.value.category_name,
-              description: form.value.description,
+              description: form.value.description || null,
               images: imagesInput
             }
       })
     })
- 
-    alert('Saved successfully')
+
+    alert(isUpdate ? 'Category updated successfully!' : 'Category created successfully!')
+    closeForm()
     window.location.reload()
   } catch (err) {
-    alert(err.message)
+    console.error('Error:', err)
+    alert(err.message || 'Operation failed')
   } finally {
     isSubmitting.value = false
   }
 }
- 
+
 // Delete
- 
 const deleteCategory = async (category) => {
-  if (!confirm('Delete category?')) return
- 
-  await fetch('/api/graphql', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query: DELETE_CATEGORY,
-      variables: { id: category.id }
+  if (!confirm(`Delete category "${category.category_name}"?`)) return
+
+  try {
+    const res = await fetch('/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: DELETE_CATEGORY,
+        variables: { id: category.id }
+      })
     })
-  })
- 
-  window.location.reload()
+
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`)
+
+    const { errors } = await res.json()
+    if (errors && errors.length) {
+      throw new Error(errors[0].message || 'Delete failed')
+    }
+
+    alert('Category deleted successfully!')
+    window.location.reload()
+  } catch (err) {
+    console.error('Error:', err)
+    alert(err.message || 'Delete failed')
+  }
 }
- 
+
 // load
- 
 const loadCategories = async () => {
-  const res = await fetch('/api/graphql', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query: CATEGORIES_QUERY })
-  })
- 
-  const { data } = await res.json()
- 
-  categories.value = data.categories
- 
-  await nextTick()
-  if (dataTable) dataTable.destroy()
-  dataTable = $('#categories-table').DataTable()
+  try {
+    const res = await fetch('/api/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: CATEGORIES_QUERY })
+    })
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`)
+
+    const { data, errors } = await res.json()
+    if (errors && errors.length) {
+      throw new Error(errors[0].message || 'Failed to load categories')
+    }
+
+    categories.value = data?.categories || []
+
+    await nextTick()
+    if (dataTable) dataTable.destroy()
+    dataTable = $('#categories-table').DataTable()
+  } catch (err) {
+    console.error('Load error:', err)
+    alert(`Failed to load categories: ${err.message}`)
+  }
 }
- 
+
 onMounted(loadCategories)
 </script>
- 
- 

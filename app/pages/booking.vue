@@ -12,7 +12,7 @@
       <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm overflow-hidden">
         <div class="p-6 border-b border-gray-200 dark:border-slate-700">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-slate-50">
-            All Bookings ({{ bookings.length }})
+            All Bookings
           </h2>
         </div>
 
@@ -20,7 +20,7 @@
           <table id="bookings-table" class="display min-w-full border-collapse text-gray-900 dark:text-slate-100">
             <thead>
               <tr class="bg-gray-50 dark:bg-slate-800">
-                <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">ID</th>
+                <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">S.No.</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Customer Name</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Package Name</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Price</th>

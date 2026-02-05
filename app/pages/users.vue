@@ -14,7 +14,7 @@
       <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm overflow-hidden">
         <div class="p-6 border-b border-gray-200 dark:border-slate-700">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-slate-50">
-            All Users ({{ users.length }})
+            All Users
           </h2>
         </div>
 
@@ -22,7 +22,7 @@
           <table id="users-table" class="display min-w-full border-collapse text-gray-900 dark:text-slate-100">
             <thead>
               <tr class="bg-gray-50 dark:bg-slate-800">
-                <th class="border-b border-gray-200 dark:border-slate-700">ID</th>
+                <th class="border-b border-gray-200 dark:border-slate-700">S.No.</th>
                 <th class="border-b border-gray-200 dark:border-slate-700">Name</th>
                 <th class="border-b border-gray-200 dark:border-slate-700">Email</th>
                 <th class="border-b border-gray-200 dark:border-slate-700">Phone</th>

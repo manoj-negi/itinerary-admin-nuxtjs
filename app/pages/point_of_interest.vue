@@ -17,7 +17,7 @@
       <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm overflow-hidden">
         <div class="p-6 border-b border-gray-200 dark:border-slate-700">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-slate-50">
-            All POIs ({{ pois.length }})
+            All POIs
           </h2>
         </div>
 
@@ -25,7 +25,8 @@
           <table id="pois-table" class="display min-w-full border-collapse text-gray-900 dark:text-slate-100">
             <thead>
               <tr class="bg-gray-50 dark:bg-slate-800">
-                <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">ID</th>
+                <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">S.No.</th>
+                <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Image</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Name</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Description</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">City</th>
@@ -41,6 +42,24 @@
                 class="hover:bg-gray-50 dark:hover:bg-slate-800"
               >
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4">{{ index + 1 }}</td>
+                <td class="border-b border-gray-200 dark:border-slate-700 p-4">
+                  <div
+                    v-if="poi.images && poi.images.length > 0"
+                    class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-700"
+                  >
+                    <img
+                      :src="poi.images[0].file_url"
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div
+                    v-else
+                    class="w-12 h-12 rounded-lg bg-gray-200 dark:bg-slate-600 flex items-center justify-center"
+                  >
+                    <span class="text-xs px-2 text-gray-500 dark:text-slate-400">No Image</span>
+                  </div>
+                </td>
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4 font-semibold">{{ poi.name }}</td>
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4 max-w-xs truncate">{{ poi.description }}</td>
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4">{{ poi.city?.name || 'N/A' }}</td>
@@ -64,7 +83,7 @@
               </tr>
 
               <tr v-if="pois.length === 0">
-                <td colspan="6" class="border-b border-gray-200 dark:border-slate-700 p-12 text-center text-gray-500 dark:text-slate-400">
+                <td colspan="7" class="border-b border-gray-200 dark:border-slate-700 p-12 text-center text-gray-500 dark:text-slate-400">
                   No POIs found. Create your first POI!
                 </td>
               </tr>
@@ -189,9 +208,31 @@
                 </button>
               </div>
 
+              <!-- ✅ Existing Images Preview (only in edit) -->
+              <div v-if="isEditing && form.existingImages?.length" class="mt-4">
+                <h4 class="text-sm font-medium text-gray-900 dark:text-slate-50 mb-3">
+                  Existing Images ({{ form.existingImages.length }})
+                </h4>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  <div
+                    v-for="img in form.existingImages"
+                    :key="img.id"
+                    class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border border-gray-200 dark:border-slate-700"
+                  >
+                    <img
+                      :src="img.file_url"
+                      :alt="img.alt_text || 'Category image'"
+                      class="w-full h-24 object-cover rounded-lg border shadow-sm"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div v-if="form.newImages.length > 0" class="mt-6">
                 <h4 class="text-sm font-medium text-gray-900 dark:text-slate-50 mb-4">
-                  Selected Images ({{ form.newImages.length }}/10)
+                  New Images ({{ form.newImages.length }}/10)
                 </h4>
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -203,7 +244,7 @@
                     <div class="relative mb-3">
                       <img
                         :src="image.preview"
-                        :alt="image.altText || 'POI image preview'"
+                        :alt="'POI image preview'"
                         class="w-full h-24 object-cover rounded-lg border shadow-sm"
                         loading="lazy"
                       />
@@ -216,29 +257,9 @@
                         ×
                       </button>
                     </div>
-
-                    <div class="space-y-2">
-                      <label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">
-                        Alt Text
-                      </label>
-                      <div class="relative">
-                        <input
-                          v-model="image.altText"
-                          @input="updateNewImageAlt(index, $event.target.value)"
-                          :maxlength="100"
-                          placeholder="Describe this image"
-                          class="w-full px-3 py-2 pr-16 text-xs border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100"
-                        />
-                        <div class="absolute right-1 top-1/2 -translate-y-1/2 text-xs text-gray-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-1 rounded">
-                          {{ image.altText.length }}/100
-                        </div>
-                      </div>
-                    </div>
-
                   </div>
                 </div>
               </div>
-
             </div>
 
             <div class="flex justify-end space-x-3 pt-4">
@@ -286,6 +307,7 @@ const form = ref({
   description: '',
   city_id: '',
   type: 'landmark',
+  existingImages: [],
   newImages: [] // [{ file, preview, altText }]
 })
 
@@ -297,6 +319,7 @@ const POIS_QUERY = `
       description
       city_id
       type
+      images { id file_url alt_text }
       city { name }
     }
     cities {
@@ -372,6 +395,7 @@ const GET_POI = `
       description 
       city_id 
       type
+      images { id file_url alt_text }
       city { name }
     }
   }
@@ -424,8 +448,7 @@ const prepareImagesForMutation = async () => {
     const url = await uploadFileToS3(img.file)
 
     result.push({
-      file_url: url,
-      alt_text: img.altText || null
+      file_url: url
     })
   }
 
@@ -473,6 +496,7 @@ const openEdit = async (poi) => {
       description: data.poi.description || '',
       city_id: data.poi.city_id,
       type: data.poi.type || 'landmark',
+      existingImages: data.poi.images || [],
       newImages: []
     }
   } catch (err) {
@@ -502,8 +526,7 @@ const handleImageSelect = (event) => {
     reader.onload = (e) => {
       form.value.newImages.push({
         file,
-        preview: e.target.result,
-        altText: ''
+        preview: e.target.result
       })
     }
     reader.readAsDataURL(file)
@@ -514,17 +537,8 @@ const removeNewImage = (index) => {
   form.value.newImages.splice(index, 1)
 }
 
-const updateNewImageAlt = (index, altText) => {
-  form.value.newImages[index].altText = altText.trim().slice(0, 100)
-}
-
 // Create and Update
 const submitPoi = async () => {
-  const hasImagesWithoutAlt = form.value.newImages.some(img => !img.altText)
-  if (hasImagesWithoutAlt && !confirm('Some images lack alt text. Continue anyway?')) {
-    return
-  }
-
   isSubmitting.value = true
 
   try {

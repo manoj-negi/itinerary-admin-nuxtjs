@@ -17,7 +17,7 @@
       <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm overflow-hidden">
         <div class="p-6 border-b border-gray-200 dark:border-slate-700">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-slate-50">
-            All Tours ({{ tours.length }})
+            All Tours
           </h2>
         </div>
 
@@ -25,7 +25,8 @@
           <table id="tours-table" class="display min-w-full border-collapse text-gray-900 dark:text-slate-100">
             <thead>
               <tr class="bg-gray-50 dark:bg-slate-800">
-                <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">ID</th>
+                <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">S.No.</th>
+                <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Image</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Title</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Description</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4 text-left font-semibold">Category</th>
@@ -43,6 +44,24 @@
               >
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4">
                   {{ index + 1 }}
+                </td>
+                <td class="border-b border-gray-200 dark:border-slate-700 p-4">
+                  <div
+                    v-if="tour.images && tour.images.length > 0"
+                    class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-700"
+                  >
+                    <img
+                      :src="tour.images[0].file_url"
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div
+                    v-else
+                    class="w-12 h-12 rounded-lg bg-gray-200 dark:bg-slate-600 flex items-center justify-center"
+                  >
+                    <span class="text-xs text-gray-500 dark:text-slate-400">No Image</span>
+                  </div>
                 </td>
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4 font-semibold">
                   {{ tour.title }}
@@ -86,7 +105,7 @@
                 </td>
               </tr>
               <tr v-if="tours.length === 0">
-                <td colspan="8" class="border-b border-gray-200 dark:border-slate-700 p-12 text-center text-gray-500 dark:text-slate-400">
+                <td colspan="9" class="border-b border-gray-200 dark:border-slate-700 p-12 text-center text-gray-500 dark:text-slate-400">
                   No tours found. Create your first tour!
                 </td>
               </tr>
@@ -266,10 +285,32 @@
                 </button>
               </div>
 
+              <!-- ✅ Existing Images Preview (only in edit) -->
+              <div v-if="isEditing && form.existingImages?.length" class="mt-4">
+                <h4 class="text-sm font-medium text-gray-900 dark:text-slate-50 mb-3">
+                  Existing Images ({{ form.existingImages.length }})
+                </h4>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  <div
+                    v-for="img in form.existingImages"
+                    :key="img.id"
+                    class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border border-gray-200 dark:border-slate-700"
+                  >
+                    <img
+                      :src="img.file_url"
+                      :alt="img.alt_text || 'Category image'"
+                      class="w-full h-24 object-cover rounded-lg border shadow-sm"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <!-- Selected Images Preview with Alt Text -->
               <div v-if="form.newImages.length > 0" class="mt-6">
                 <h4 class="text-sm font-medium text-gray-900 dark:text-slate-50 mb-4">
-                  Selected Images ({{ form.newImages.length }}/10)
+                  New Images ({{ form.newImages.length }}/10)
                 </h4>
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                   <div
@@ -281,7 +322,7 @@
                     <div class="relative mb-3">
                       <img
                         :src="image.preview"
-                        :alt="image.altText || 'Tour image preview'"
+                        :alt="'Tour image preview'"
                         class="w-full h-24 object-cover rounded-lg border shadow-sm"
                         loading="lazy"
                       />
@@ -294,29 +335,6 @@
                       >
                         ×
                       </button>
-                    </div>
-
-                    <!-- Replace the Alt Text Input section with this fixed version -->
-                    <div class="space-y-2">
-                      <label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">
-                        Alt Text (for accessibility)
-                      </label>
-                      <div class="relative">
-                        <input
-                          v-model="image.altText"
-                          @input="updateNewImageAlt(index, $event.target.value)"
-                          :maxlength="100"
-                          placeholder="Describe this image (e.g., 'Mountain view at sunset')"
-                          class="w-full px-3 py-2 pr-16 text-xs border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                        />
-                        <!-- ✅ Fixed: Added padding-right + smaller counter -->
-                        <div class="absolute right-1 top-1/2 -translate-y-1/2 text-xs text-gray-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-1 rounded">
-                          {{ image.altText.length }}/100
-                        </div>
-                      </div>
-                      <p v-if="image.altText" class="text-xs text-gray-500 dark:text-slate-400 mt-1 break-words max-w-full">
-                        Preview: <span class="font-normal">{{ image.altText }}</span>
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -377,6 +395,7 @@ const form = ref({
   duration_days: 1,
   status: 'draft',
   created_by: '1',
+  existingImages: [],
   newImages: []
 })
 
@@ -537,8 +556,7 @@ const prepareImagesForMutation = async () => {
     const url = await uploadFileToS3(img.file)
 
     result.push({
-      file_url: url,
-      alt_text: img.altText || null
+      file_url: url
     })
   }
 
@@ -597,6 +615,7 @@ const openEdit = async (tour) => {
       duration_days: data.tour.duration_days,
       status: data.tour.status,
       created_by: data.tour.created_by || '1',
+      existingImages: data.tour.images || [],
       newImages: []
     };
     
@@ -627,8 +646,7 @@ const handleImageSelect = (event) => {
     reader.onload = (e) => {
       form.value.newImages.push({
         file,
-        preview: e.target.result,
-        altText: ''
+        preview: e.target.result
       })
     }
     reader.readAsDataURL(file)
@@ -639,17 +657,8 @@ const removeNewImage = (index) => {
   form.value.newImages.splice(index, 1)
 }
 
-const updateNewImageAlt = (index, altText) => {
-  form.value.newImages[index].altText = altText.trim().slice(0, 100)
-}
-
 // Create and Update
 const submitTour = async () => {
-  const hasImagesWithoutAlt = form.value.newImages.some(img => !img.altText)
-  if (hasImagesWithoutAlt && !confirm('Some images lack alt text. Continue anyway?')) {
-    return
-  }
-
   isSubmitting.value = true
 
   try {

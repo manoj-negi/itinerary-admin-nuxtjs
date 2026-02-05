@@ -19,7 +19,7 @@
       <div class="bg-white dark:bg-slate-900 rounded-xl shadow-sm overflow-hidden">
         <div class="p-6 border-b border-gray-200 dark:border-slate-700">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-slate-50">
-            All Packages ({{ packages.length }})
+            All Packages
           </h2>
         </div>
 
@@ -30,7 +30,8 @@
           >
             <thead>
               <tr class="bg-gray-50 dark:bg-slate-800 text-left text-sm font-semibold text-gray-700 dark:text-slate-200">
-                <th class="border-b border-gray-200 dark:border-slate-700 p-4">ID</th>
+                <th class="border-b border-gray-200 dark:border-slate-700 p-4">S.No.</th>
+                <th class="border-b border-gray-200 dark:border-slate-700 p-4">Image</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4">Tour Name</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4">Package Name</th>
                 <th class="border-b border-gray-200 dark:border-slate-700 p-4">Price</th>
@@ -49,6 +50,24 @@
               >
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4 font-mono text-xs">
                   {{ index + 1 }}
+                </td>
+                <td class="border-b border-gray-200 dark:border-slate-700 p-4">
+                  <div
+                    v-if="p.images && p.images.length > 0"
+                    class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-slate-700"
+                  >
+                    <img
+                      :src="p.images[0].file_url"
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div
+                    v-else
+                    class="w-12 h-12 rounded-lg bg-gray-200 dark:bg-slate-600 flex items-center justify-center"
+                  >
+                    <span class="text-xs text-gray-500 dark:text-slate-400">No Image</span>
+                  </div>
                 </td>
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4">{{ p.tour?.title || 'N/A' }}</td>
                 <td class="border-b border-gray-200 dark:border-slate-700 p-4 font-medium text-gray-900 dark:text-slate-50">
@@ -84,7 +103,7 @@
 
               <tr v-if="packages.length === 0">
                 <td
-                  colspan="8"
+                  colspan="9"
                   class="border-b border-gray-200 dark:border-slate-700 p-12 text-center text-gray-500 dark:text-slate-400"
                 >
                   No packages found. Create your first package!
@@ -227,9 +246,31 @@
                 </button>
               </div>
 
+              <!-- ✅ Existing Images Preview (only in edit) -->
+              <div v-if="isEditing && form.existingImages?.length" class="mt-4">
+                <h4 class="text-sm font-medium text-gray-900 dark:text-slate-50 mb-3">
+                  Existing Images ({{ form.existingImages.length }})
+                </h4>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  <div
+                    v-for="img in form.existingImages"
+                    :key="img.id"
+                    class="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border border-gray-200 dark:border-slate-700"
+                  >
+                    <img
+                      :src="img.file_url"
+                      :alt="img.alt_text || 'Category image'"
+                      class="w-full h-24 object-cover rounded-lg border shadow-sm"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div v-if="form.newImages.length > 0" class="mt-6">
                 <h4 class="text-sm font-medium text-gray-900 dark:text-slate-50 mb-4">
-                  Selected Images ({{ form.newImages.length }}/10)
+                  New Images ({{ form.newImages.length }}/10)
                 </h4>
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -241,7 +282,7 @@
                     <div class="relative mb-3">
                       <img
                         :src="image.preview"
-                        :alt="image.altText || 'Package image preview'"
+                        :alt="'Package image preview'"
                         class="w-full h-24 object-cover rounded-lg border shadow-sm"
                         loading="lazy"
                       />
@@ -253,29 +294,6 @@
                       >
                         ×
                       </button>
-                    </div>
-
-                    <div class="space-y-2">
-                      <label class="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">
-                        Alt Text (for accessibility)
-                      </label>
-
-                      <div class="relative">
-                        <input
-                          v-model="image.altText"
-                          @input="updateNewImageAlt(index, $event.target.value)"
-                          :maxlength="100"
-                          placeholder="Describe this image"
-                          class="w-full px-3 py-2 pr-16 text-xs border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                        />
-                        <div class="absolute right-1 top-1/2 -translate-y-1/2 text-xs text-gray-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-1 rounded">
-                          {{ image.altText.length }}/100
-                        </div>
-                      </div>
-
-                      <p v-if="image.altText" class="text-xs text-gray-500 dark:text-slate-400 mt-1 break-words max-w-full">
-                        Preview: <span class="font-normal">{{ image.altText }}</span>
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -334,6 +352,7 @@ const form = ref({
   currency: 'INR',
   occupancy: '',
   is_featured: false,
+  existingImages: [],
   newImages: []
 })
 
@@ -491,8 +510,7 @@ const prepareImagesForMutation = async () => {
     const url = await uploadFileToS3(img.file)
 
     result.push({
-      file_url: url,
-      alt_text: img.altText || null
+      file_url: url
     })
   }
 
@@ -544,6 +562,7 @@ const openEdit = async (pkg) => {
       currency: p.currency || 'INR',
       occupancy: p.occupancy || '',
       is_featured: !!p.is_featured,
+      existingImages: data.package.images || [],
       newImages: []
     }
 
@@ -574,8 +593,7 @@ const handleImageSelect = (event) => {
     reader.onload = (e) => {
       form.value.newImages.push({
         file,
-        preview: e.target.result,
-        altText: ''
+        preview: e.target.result
       })
     }
     reader.readAsDataURL(file)
@@ -586,15 +604,8 @@ const removeNewImage = (index) => {
   form.value.newImages.splice(index, 1)
 }
 
-const updateNewImageAlt = (index, altText) => {
-  form.value.newImages[index].altText = (altText || '').trim().slice(0, 100)
-}
-
 // Create and Update
 const submitPackage = async () => {
-  const hasImagesWithoutAlt = form.value.newImages.some(img => !img.altText)
-  if (hasImagesWithoutAlt && !confirm('Some images lack alt text. Continue anyway?')) return
-
   isSubmitting.value = true
   try {
     /* upload images FIRST */
