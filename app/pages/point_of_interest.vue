@@ -291,6 +291,7 @@
 <script setup>
 import { onMounted, ref, nextTick } from 'vue'
 
+const { getAuthHeaders } = useGraphQL()
 const showForm = ref(false)
 const isEditing = ref(false)
 const isSubmitting = ref(false)
@@ -415,7 +416,7 @@ mutation GetUploadUrl($folder:String!, $fileName:String!, $contentType:String!){
 const uploadFileToS3 = async (file) => {
   const res = await fetch('/api/graphql', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       query: GET_UPLOAD_URL,
       variables: {
@@ -477,7 +478,7 @@ const openEdit = async (poi) => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         query: GET_POI,
         variables: { id: poi.id }
@@ -552,7 +553,7 @@ const submitPoi = async () => {
 
     await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         query: isUpdate ? UPDATE_POI : CREATE_POI,
         variables: isUpdate
@@ -591,7 +592,7 @@ const deletePoi = async (poi) => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         query: DELETE_POI,
         variables: { id: poi.id }
@@ -615,7 +616,7 @@ const loadPois = async () => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ query: POIS_QUERY })
     })
 

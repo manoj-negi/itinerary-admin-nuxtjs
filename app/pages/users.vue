@@ -155,6 +155,7 @@
 <script setup>
 import { onMounted, ref, nextTick } from 'vue'
 
+const { getAuthHeaders } = useGraphQL()
 const showForm = ref(false)
 const form = ref({
   id: null,
@@ -259,7 +260,7 @@ const openEdit = async (user) => {
     // Sirf YE user fetch karo
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         query: GET_USER,
         variables: { id: user.id }
@@ -302,7 +303,7 @@ const submitUser = async () => {
 
       const res = await fetch('/api/graphql', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           query: UPDATE_USER,
           variables: {
@@ -334,7 +335,7 @@ const submitUser = async () => {
       // CREATE
       const res = await fetch('/api/graphql', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           query: CREATE_USER,
           variables: {
@@ -375,7 +376,7 @@ const deleteUser = async (user) => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         query: DELETE_USER,
         variables: { id: user.id }
@@ -407,7 +408,7 @@ const loadUsers = async () => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ query: USERS_QUERY })
     })
 

@@ -85,7 +85,9 @@
 
 <script setup>
 import { onMounted, ref, nextTick } from 'vue'
+import { useGraphQL } from '../composables/useGraphQL'
 
+const { getAuthHeaders } = useGraphQL()
 const stats = ref({ users: 0, tours: 0, bookings: 0, revenue: 0 })
 const recentBookings = ref([])
 const topTours = ref([])
@@ -134,7 +136,7 @@ const initTables = async () => {
 const loadDashboard = async () => {
   const res = await fetch('/api/graphql', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ query: DASHBOARD_QUERY })
   })
 

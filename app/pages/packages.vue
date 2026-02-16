@@ -335,6 +335,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 
+const { getAuthHeaders } = useGraphQL()
 const packages = ref([])
 const tours = ref([])
 const showForm = ref(false)
@@ -477,7 +478,7 @@ mutation GetUploadUrl($folder:String!, $fileName:String!, $contentType:String!){
 const uploadFileToS3 = async (file) => {
   const res = await fetch('/api/graphql', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       query: GET_UPLOAD_URL,
       variables: {
@@ -541,7 +542,7 @@ const openEdit = async (pkg) => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         query: GET_PACKAGE,
         variables: { id: pkg.id }
@@ -618,7 +619,7 @@ const submitPackage = async () => {
 
     await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         query: isUpdate ? UPDATE_PACKAGE : CREATE_PACKAGE,
         variables: isUpdate
@@ -661,7 +662,7 @@ const deletePackage = async (pkg) => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ query: DELETE_PACKAGE, variables: { id: pkg.id } })
     })
 
@@ -684,7 +685,7 @@ const loadPackages = async () => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ query: PACKAGES_QUERY })
     })
 

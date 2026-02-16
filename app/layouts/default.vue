@@ -39,10 +39,20 @@
       <header class="h-16 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between px-8 sticky top-0 z-40 shadow-sm">
         <h2 class="text-xl font-semibold text-gray-900 dark:text-slate-100">Infinite Horizons Travel Studio</h2>
 
-        <button
-          class="px-3 py-1 rounded-full text-sm border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-100 bg-gray-100 dark:bg-slate-800" @click="toggleTheme">
-          {{ colorMode.value === 'dark' ? 'Light Mode' : 'Dark Mode' }}
-        </button>
+        <div class="flex items-center gap-3">
+          <button
+            class="px-3 py-1 rounded-full text-sm border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-100 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition"
+            @click="toggleTheme"
+          >
+            {{ colorMode.value === 'dark' ? 'Light Mode' : 'Dark Mode' }}
+          </button>
+          <button
+            class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 dark:bg-rose-600 dark:hover:bg-rose-700 transition"
+            @click="handleLogout"
+          >
+            Logout
+          </button>
+        </div>
       </header>
 
       <main class="flex-1 px-8 py-6 pb-12 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-slate-100">
@@ -55,8 +65,32 @@
 <script setup lang="ts">
 const colorMode = useColorMode()
 
+const LOGOUT_MUTATION = `
+  mutation Logout {
+    logout
+  }
+`
+
 const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+}
+
+const { getAuthHeaders } = useGraphQL()
+
+const handleLogout = async () => {
+  try {
+    await $fetch('/api/graphql', {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ query: LOGOUT_MUTATION })
+    })
+  } catch (_) {
+    // Still clear token and redirect if backend is unreachable
+  }
+  if (import.meta.client) {
+    localStorage.removeItem('admin_token')
+  }
+  await navigateTo('/')
 }
 </script>
 

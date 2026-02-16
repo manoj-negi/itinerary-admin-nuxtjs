@@ -374,6 +374,7 @@
 <script setup>
 import { onMounted, ref, nextTick } from 'vue'
 
+const { getAuthHeaders } = useGraphQL()
 const showForm = ref(false)
 const isEditing = ref(false)
 const isSubmitting = ref(false)
@@ -523,7 +524,7 @@ mutation GetUploadUrl($folder:String!, $fileName:String!, $contentType:String!){
 const uploadFileToS3 = async (file) => {
   const res = await fetch('/api/graphql', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       query: GET_UPLOAD_URL,
       variables: {
@@ -591,7 +592,7 @@ const openEdit = async (tour) => {
     // Sirf YE tour fetch karo
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         query: GET_TOUR,
         variables: { id: tour.id }
@@ -672,7 +673,7 @@ const submitTour = async () => {
 
     await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         query: isUpdate ? UPDATE_TOUR : CREATE_TOUR,
         variables: isUpdate
@@ -716,7 +717,7 @@ const deleteTour = async (tour) => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         query: DELETE_TOUR,
         variables: { id: tour.id }
@@ -742,7 +743,7 @@ const loadTours = async () => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ query: TOURS_QUERY })
     })
 

@@ -177,6 +177,7 @@
 <script setup>
 import { onMounted, ref, nextTick } from 'vue'
 
+const { getAuthHeaders } = useGraphQL()
 const bookings = ref([])
 let dataTable = null
 
@@ -272,7 +273,7 @@ const openEdit = async (booking) => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         query: GET_BOOKING,
         variables: { id: booking.id }
@@ -304,7 +305,7 @@ const loadBookings = async () => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ query: BOOKINGS_QUERY })
     })
 
@@ -331,7 +332,7 @@ const submitBooking = async () => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         query: UPDATE_BOOKING,
         variables: {
@@ -366,7 +367,7 @@ const deleteBooking = async (booking) => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ query: DELETE_BOOKING, variables: { id: booking.id } })
     })
 

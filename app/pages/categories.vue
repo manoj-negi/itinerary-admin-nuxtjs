@@ -257,6 +257,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 
+const { getAuthHeaders } = useGraphQL()
 const showForm = ref(false)
 const isEditing = ref(false)
 const isSubmitting = ref(false)
@@ -345,7 +346,7 @@ mutation GetUploadUrl($folder:String!, $fileName:String!, $contentType:String!){
 const uploadFileToS3 = async (file) => {
   const res = await fetch('/api/graphql', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       query: GET_UPLOAD_URL,
       variables: {
@@ -405,7 +406,7 @@ const openEdit = async (category) => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         query: `
           query GetCategory($id: UUID!) {
@@ -492,7 +493,7 @@ const submitCategory = async () => {
 
     await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         query: isUpdate ? UPDATE_CATEGORY : CREATE_CATEGORY,
         variables: isUpdate
@@ -528,7 +529,7 @@ const deleteCategory = async (category) => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         query: DELETE_CATEGORY,
         variables: { id: category.id }
@@ -555,7 +556,7 @@ const loadCategories = async () => {
   try {
     const res = await fetch('/api/graphql', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ query: CATEGORIES_QUERY })
     })
 

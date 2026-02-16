@@ -1,12 +1,36 @@
 export default defineEventHandler(async (event) => {
+  const config = useRuntimeConfig()
   const body = await readBody(event)
+  const apiBase = config.public.apiBaseUrl
 
-  const res = await fetch('http://localhost:8080/query', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  }
+  const auth = getHeader(event, 'authorization')
+  if (auth) {
+    headers.Authorization = auth
+  }
 
-  const data = await res.json()
-  return data
+  try {
+    const res = await $fetch.raw(`${apiBase}/query`, {
+      method: 'POST',
+      headers,
+      body
+    })
+
+    if (!res.ok) {
+      throw createError({
+        statusCode: res.status,
+        statusMessage: res.statusText
+      })
+    }
+
+    return res._data
+  } catch (error) {
+    console.error('API Proxy Error:', error)
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Internal Server Error'
+    })
+  }
 })

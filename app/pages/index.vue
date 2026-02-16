@@ -107,6 +107,7 @@ const handleLogin = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         query: LOGIN_MUTATION,
+        operationName: 'Login',
         variables: {
           email: email.value,
           password: password.value
@@ -121,7 +122,6 @@ const handleLogin = async () => {
     }
 
     const { data, errors } = await res.json()
-
     if (errors && errors.length) {
       status.type = 'error'
       status.message = errors[0].message || 'Login failed'
@@ -129,16 +129,9 @@ const handleLogin = async () => {
     }
 
     const { token, user } = data.login
-    console.log('token from API:', token)
-    console.log('user from API:', user)
-
-    const roleId = user.role_id
-    if (roleId !== '019bbc56-d806-725e-9586-608344a1a861') {
-      status.type = 'error'
-      status.message = 'Access denied. You are not an admin.'
-      return
+    if (import.meta.client && token) {
+      localStorage.setItem('admin_token', token)
     }
-    
 
     status.type = 'success'
     status.message = 'Access granted. Redirecting to dashboard...'
